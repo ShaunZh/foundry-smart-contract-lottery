@@ -25,9 +25,7 @@
 
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
-
-error Raffle__NotEnoughEthSent();
+pragma solidity 0.8.19;
 
 /**
  * @title A simple raffle contract
@@ -36,6 +34,9 @@ error Raffle__NotEnoughEthSent();
  * @dev This implements the Chainlink VRFv2.5 and Chainlink Automation
  */
 contract Raffle {
+    /* Errors */
+    error Raffle__SendMoreToEnterRaffle();
+
     uint256 private immutable i_entranceFee;
 
     constructor(uint256 entranceFee) {
@@ -44,7 +45,10 @@ contract Raffle {
 
     function enterRaffle() external payable{
         // require(msg.value > i_entranceFee, "Not enough ETH sent");
-        if (msg.value < i_entranceFee) revert Raffle__NotEnoughEthSent();
+        // require(msg.value > i_entranceFee, SendMoreToEnterRaffle());
+        if (msg.value < i_entranceFee) {
+            revert Raffle__SendMoreToEnterRaffle();
+        }
     }
 
     function pickWinner() public {
