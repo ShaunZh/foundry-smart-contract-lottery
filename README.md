@@ -22,6 +22,12 @@ Foundry consists of:
 -   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
 -   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
+
+## Commands
+```shell
+
+$ forge install smartcontractkit/chainlink-brownie-contracts --no-commit
+```
 ## Documentation
 
 https://book.getfoundry.sh/
