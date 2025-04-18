@@ -42,6 +42,13 @@ contract Raffle is VRFConsumerBaseV2Plus {
     /* Errors */
     error Raffle__SendMoreToEnterRaffle();
     error Raffle__TransferFailed();
+    error Raffle__RaffleNotOpen();
+
+    // type declarations
+    enum RaffleState {
+        OPEN, // 0
+        CALCULATING // 1
+    }
 
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private constant NUM_WORDS = 1;
@@ -54,6 +61,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     address payable[] private s_players;
     address payable private s_recentWinner;
     uint256 private s_lastTimeStamp;
+    RaffleState private s_raffleState;
 
     // address immutable i_vrfCoordinator;
 
@@ -75,12 +83,14 @@ contract Raffle is VRFConsumerBaseV2Plus {
         i_keyHash = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
+        s_raffleState = RaffleState.OPEN;
     }
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
         // Your code to handle the random numbers
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
+        s_raffleState = RaffleState.OPEN;
         (bool success,) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle__TransferFailed();
@@ -93,6 +103,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
         if (msg.value < i_entranceFee) {
             revert Raffle__SendMoreToEnterRaffle();
         }
+        // if not open, you can't enter
+        if (s_raffleState != RaffleState.OPEN) {
+            revert Raffle__RaffleNotOpen();
+        }
         s_players.push(payable(msg.sender));
         emit RaffleEntered(msg.sender);
     }
@@ -104,6 +118,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     function pickWinner() external {
         // check to see if enough time has passed
         if (block.timestamp - s_lastTimeStamp < i_interval) revert();
+        s_raffleState = RaffleState.CALCULATING;
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
                 keyHash: i_keyHash,
                 subId: i_subscriptionId,
