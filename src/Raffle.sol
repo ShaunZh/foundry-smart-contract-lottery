@@ -68,6 +68,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     /** Events */
     event RaffleEntered(address indexed player);
+    event PickWinner(address winner);
 
     constructor(
         uint256 entranceFee, 
@@ -95,6 +96,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
         if (!success) {
             revert Raffle__TransferFailed();
         }
+        // reset the state of the raffle
+        s_players = new address payable[](0);
+        s_lastTimeStamp = block.timestamp;
+        emit PickWinner(recentWinner);
       }
 
     function enterRaffle() external payable{
