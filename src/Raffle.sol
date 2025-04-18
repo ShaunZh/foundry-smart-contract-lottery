@@ -86,20 +86,25 @@ contract Raffle is VRFConsumerBaseV2Plus {
         i_callbackGasLimit = callbackGasLimit;
         s_raffleState = RaffleState.OPEN;
     }
+    // CEI: Checks, Effects, Interactions
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
-        // Your code to handle the random numbers
+        // 1. Checks: conditions
+
+        // 2. Effect( Internal Contract State)
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
         s_raffleState = RaffleState.OPEN;
-        (bool success,) = recentWinner.call{value: address(this).balance}("");
-        if (!success) {
-            revert Raffle__TransferFailed();
-        }
         // reset the state of the raffle
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
         emit PickWinner(recentWinner);
+
+        // 3. Interaction (External Contract interactions)
+        (bool success,) = recentWinner.call{value: address(this).balance}("");
+        if (!success) {
+            revert Raffle__TransferFailed();
+        }
       }
 
     function enterRaffle() external payable{
