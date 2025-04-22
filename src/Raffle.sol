@@ -41,6 +41,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     error Raffle__SendMoreToEnterRaffle();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
+    error Raffle__UpkeepNotNeeded(uint256 balance, uint256 playersLength, uint256 raffleState);
 
     // type declarations
     enum RaffleState {
@@ -85,7 +86,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     }
     // CEI: Checks, Effects, Interactions
     function fulfillRandomWords(
-        uint256 requestId,
+        uint256 /* requestId */ ,
         uint256[] calldata randomWords
     ) internal override {
         // 1. Checks: conditions
@@ -149,7 +150,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
         // check to see if enough time has passed
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
-            revert();
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance,
+                s_players.length,
+                uint256(s_raffleState)
+            );
         }
         s_raffleState = RaffleState.CALCULATING;
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient
@@ -164,7 +169,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
                     VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
                 )
             });
-        uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
+        s_vrfCoordinator.requestRandomWords(request);
     }
 
     /** Getter functions */
