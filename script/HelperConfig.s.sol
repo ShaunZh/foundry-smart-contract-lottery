@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import {Script} from "forge-std/Script.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2_5Mock.sol";
+import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 
 abstract contract CodeConstants {
     /** VRF Mock Values */
@@ -48,7 +48,7 @@ contract HelperConfig is CodeConstants, Script {
     } 
 
     function getConfig() public returns(NetworkConfig memory) {
-        return getConfigByChainID(block.chainId);
+        return getConfigByChainID(block.chainid);
     }
 
     function getSepoliaEthConfig() public pure returns(NetworkConfig memory) {
