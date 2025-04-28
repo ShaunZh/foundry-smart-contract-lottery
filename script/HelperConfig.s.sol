@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT 
 pragma solidity 0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {LinkToken} from "../test/mocks/LinkToken.sol";
 
@@ -50,6 +50,7 @@ contract HelperConfig is CodeConstants, Script {
     } 
 
     function getConfig() public returns(NetworkConfig memory) {
+        console.log("Getting config for chainId: ", block.chainid);
         return getConfigByChainID(block.chainid);
     }
 
@@ -65,7 +66,7 @@ contract HelperConfig is CodeConstants, Script {
         });
     }
 
-    function getOrCreateAnvilEthConfig() public returns(NetworkConfig memory) {
+    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
         if (localNetworkConfig.vrfCoordinator != address(0)) {
             return localNetworkConfig;
         }
@@ -79,14 +80,19 @@ contract HelperConfig is CodeConstants, Script {
         );
         LinkToken linkToken = new LinkToken();
         vm.stopBroadcast();
+
+        // Create subscription
+        vm.startBroadcast();
+        uint256 subscriptionId = vrfCoordinator.createSubscription();
+        vm.stopBroadcast();
+
         localNetworkConfig = NetworkConfig({
             entranceFee: 0.01 ether,
             interval: 30,
             vrfCoordinator: address(vrfCoordinator),
-            // gasLane value doesn't matter for mocks
             gasLane: 0x9e1344a1247c8a1785d0a4681a27152bffdb43666ae5bf7d14d24a5efd44bf71,
             callbackGasLimit: 500000,
-            subscriptionId: 0,
+            subscriptionId: subscriptionId,
             link: address(linkToken)
         });
         return localNetworkConfig;
