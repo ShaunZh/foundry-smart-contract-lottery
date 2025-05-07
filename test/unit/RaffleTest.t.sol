@@ -26,7 +26,7 @@ contract RaffleTest is Test {
     event RaffleEntered(address indexed player);
     event PickWinner(address winner);
 
-    modifier raffleEntredAndTimePassed() {
+    modifier raffleEntred() {
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
         vm.warp(block.timestamp + interval + 1);
@@ -163,7 +163,7 @@ contract RaffleTest is Test {
         raffle.performUpkeep("");
     }
 
-    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId() public raffleEntredAndTimePassed {
+    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId() public raffleEntred {
         // Arrange
         vm.recordLogs();
         raffle.performUpkeep("");
@@ -174,5 +174,17 @@ contract RaffleTest is Test {
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         assert(uint256(requestId) > 0);
         assert(raffleState == Raffle.RaffleState.CALCULATING);
+    }
+    
+    function testFulfillRandomWordsCanOnlyBeCalledAfterPerformUpkeep(uint256 randomRequestId) public raffleEntred {
+        // Arrage 
+        // Act / Assert 
+
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        // vm.mockCall could used here ...
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(
+            randomRequestId, 
+            address(raffle)
+        );
     }
 }
