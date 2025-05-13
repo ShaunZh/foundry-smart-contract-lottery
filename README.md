@@ -1,5 +1,13 @@
 # Proveably Random Raffle Contracts
 
+## Cmmands
+
+### Verify-contract 
+`forge  verify-contract 0x569e99481E72AdC0f74FBD9a56103065E8815224 src/Raffle.sol:Raffle  --rpc-url $SEPOLIA_RPC_URL  --etherscan-api-key $ETHERSCAN_API_KEY --show-standard-json-input > json.json`
+
+**Not**:
+- Using your contract address replace the address: 0x569e99481E72AdC0f74FBD9a56103065E8815224 
+
 ## About
 This code is to create a proveably random smart contract lottery.
 
